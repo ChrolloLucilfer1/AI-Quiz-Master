@@ -1,4 +1,4 @@
-name: CI
+name: CI/CD
 
 on:
   push:
@@ -35,3 +35,31 @@ jobs:
       - name: Run tests
         run: |
           python -m pytest tests/ -v
+
+  verify-deployment:
+    name: Verify live deployment (CD smoke test)
+    needs: lint-and-test
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Wait for Streamlit Cloud to redeploy
+        run: sleep 90
+
+      - name: Smoke test the live app
+        run: |
+          # Streamlit Community Cloud auto-deploys on push to main.
+          # This job doesn't trigger the deploy — it verifies it actually
+          # came up healthy afterward, retrying to allow for cold starts.
+          url="https://ai-fun-quiz.streamlit.app/"
+          for attempt in 1 2 3 4 5; do
+            status=$(curl -s -o /dev/null -w "%{http_code}" --max-time 20 "$url")
+            echo "Attempt $attempt: HTTP $status"
+            if [ "$status" -ge 200 ] && [ "$status" -lt 400 ]; then
+              echo "Deployment healthy."
+              exit 0
+            fi
+            sleep 20
+          done
+          echo "Deployment did not respond healthy after 5 attempts."
+          exit 1
