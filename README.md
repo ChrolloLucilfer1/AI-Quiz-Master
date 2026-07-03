@@ -1,4 +1,6 @@
 AI Quiz Master
+[![CI](https://github.com/ChrolloLucilfer1/AI-Quiz-Master/actions/workflows/ci.yml/badge.svg)](https://github.com/ChrolloLucilfer1/AI-Quiz-Master/actions/workflows/ci.yml)
+
 A modular Python application that leverages Generative AI to create interactive learning experiences.
 
 🚀 Features
