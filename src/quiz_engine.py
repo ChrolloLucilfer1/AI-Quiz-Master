@@ -5,7 +5,7 @@ import re
 
 # Structural contract expected from the LLM for a valid quiz payload.
 HEX_COLOR_PATTERN = re.compile(r"^#(?:[0-9a-fA-F]{3}){1,2}$")
-REQUIRED_QUESTION_KEYS = {"q", "options", "correct"}
+REQUIRED_QUESTION_KEYS = {"q", "options", "correct", "explanation"}
 
 def validate_quiz_schema(data):
     """
@@ -45,6 +45,9 @@ def validate_quiz_schema(data):
         if question["correct"] not in options:
             return False, f"Question {i} 'correct' answer is not present in 'options'"
 
+        if not isinstance(question["explanation"], str) or not question["explanation"].strip():
+            return False, f"Question {i} has an empty or invalid 'explanation' field"
+
     return True, None
 
 
@@ -59,7 +62,10 @@ def get_quiz_data(topic, num_q):
     prompt = (
         f"Create a {num_q}-question MCQ quiz about {topic}. "
         f"Pick one vibrant HEX color for the theme. "
-        f"Return ONLY JSON: {{'color': '#hex', 'questions': [{{'q': '...', 'options': ['a','b','c','d'], 'correct': '...'}}]}}"
+        f"For each question, include a short 1-2 sentence 'explanation' of why the "
+        f"'correct' answer is right. "
+        f"Return ONLY JSON: {{'color': '#hex', 'questions': [{{'q': '...', 'options': ['a','b','c','d'], "
+        f"'correct': '...', 'explanation': '...'}}]}}"
     )
     
     # These are the most stable model IDs for the current SDK

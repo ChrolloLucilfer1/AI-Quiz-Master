@@ -10,7 +10,12 @@ def make_valid_payload():
     return {
         "color": "#1a2b3c",
         "questions": [
-            {"q": "What is 2+2?", "options": ["3", "4", "5", "6"], "correct": "4"}
+            {
+                "q": "What is 2+2?",
+                "options": ["3", "4", "5", "6"],
+                "correct": "4",
+                "explanation": "2+2 equals 4 by basic addition.",
+            }
         ],
     }
 
@@ -69,3 +74,19 @@ def test_options_with_fewer_than_two_choices_fails():
 def test_non_dict_response_fails():
     is_valid, reason = validate_quiz_schema(["not", "a", "dict"])
     assert is_valid is False
+
+
+def test_missing_explanation_field_fails():
+    data = make_valid_payload()
+    del data["questions"][0]["explanation"]
+    is_valid, reason = validate_quiz_schema(data)
+    assert is_valid is False
+    assert "missing" in reason.lower()
+
+
+def test_empty_explanation_field_fails():
+    data = make_valid_payload()
+    data["questions"][0]["explanation"] = "   "
+    is_valid, reason = validate_quiz_schema(data)
+    assert is_valid is False
+    assert "explanation" in reason.lower()

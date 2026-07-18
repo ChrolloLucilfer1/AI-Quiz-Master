@@ -18,6 +18,8 @@ if "quiz_data" not in st.session_state:
     st.session_state.quiz_data = None
     st.session_state.user_answers = {}
     st.session_state.primary_color = "#FF4B4B"
+if "show_results" not in st.session_state:
+    st.session_state.show_results = False
 
 # --- LOGIN / SIGNUP SCREEN ---
 if not st.session_state.authenticated:
@@ -78,21 +80,54 @@ else:
             }}
             </style>
             """, unsafe_allow_html=True)
-        
-        st.title("🔥 Quiz Arena")
-        if st.button("⬅️ Change Topic"):
-            st.session_state.quiz_data = None
-            st.rerun()
 
-        for i, item in enumerate(st.session_state.quiz_data):
-            st.subheader(f"Q{i+1}: {item['q']}")
-            st.session_state.user_answers[i] = st.radio("Select Answer:", item['options'], key=f"q{i}", index=None)
+        if st.session_state.show_results:
+            # --- RESULTS PAGE ---
+            st.title("📊 Results")
 
-        if st.button("Submit Result"):
-            if None in st.session_state.user_answers.values():
-                st.warning("Please answer all questions before submitting!")
-            else:
-                score = sum(1 for i, item in enumerate(st.session_state.quiz_data) if st.session_state.user_answers[i] == item['correct'])
-                st.balloons()
-                st.success(f"Final Score: {score} / {len(st.session_state.quiz_data)}")
-                st.session_state.quiz_data = None # Reset for next round
+            quiz_data = st.session_state.quiz_data
+            answers = st.session_state.user_answers
+            score = sum(1 for i, item in enumerate(quiz_data) if answers[i] == item['correct'])
+            total = len(quiz_data)
+
+            st.success(f"Final Score: {score} / {total}")
+            st.progress(score / total if total else 0)
+
+            st.divider()
+
+            for i, item in enumerate(quiz_data):
+                user_ans = answers[i]
+                is_correct = user_ans == item['correct']
+
+                st.subheader(f"Q{i+1}: {item['q']}")
+                if is_correct:
+                    st.success(f"✅ Your answer: {user_ans}")
+                else:
+                    st.error(f"❌ Your answer: {user_ans}")
+                    st.info(f"✔️ Correct answer: {item['correct']}")
+                st.caption(f"💡 {item.get('explanation', '')}")
+
+            if st.button("🔁 Retake / New Topic"):
+                st.session_state.quiz_data = None
+                st.session_state.user_answers = {}
+                st.session_state.show_results = False
+                st.rerun()
+
+        else:
+            # --- QUIZ TAKING PAGE ---
+            st.title("🔥 Quiz Arena")
+            if st.button("⬅️ Change Topic"):
+                st.session_state.quiz_data = None
+                st.rerun()
+
+            for i, item in enumerate(st.session_state.quiz_data):
+                st.subheader(f"Q{i+1}: {item['q']}")
+                st.session_state.user_answers[i] = st.radio("Select Answer:", item['options'], key=f"q{i}", index=None)
+
+            if st.button("Submit Result"):
+                if None in st.session_state.user_answers.values():
+                    st.warning("Please answer all questions before submitting!")
+                else:
+                    st.session_state.show_results = True
+                    st.balloons()
+                    st.rerun()
