@@ -1,6 +1,7 @@
 AI Quiz Master
 [![CI](https://github.com/ChrolloLucilfer1/AI-Quiz-Master/actions/workflows/ci.yml/badge.svg)](https://github.com/ChrolloLucilfer1/AI-Quiz-Master/actions/workflows/ci.yml)
 
+Live Link:- https://ai-fun-quiz.streamlit.app/
 A modular Python application that leverages Generative AI to create interactive learning experiences.
 
 🚀 Features
